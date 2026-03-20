@@ -16,6 +16,7 @@
                  android:allowBackup="true"
                  android:resizeableActivity="true">
         <activity android:name=".DroidFish"
+            android:launchMode="singleTop"
                   android:label="@string/app_name"
                   android:theme="@style/MainActivityTheme"
                   android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize">
