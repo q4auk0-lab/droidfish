@@ -87,6 +87,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
@@ -94,6 +95,7 @@ import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
@@ -166,6 +168,10 @@ public class DroidFish extends Activity
     GameMode gameMode;
     private boolean mPonderMode;
     private int timeControl;
+    // ── ChessAssist intent receiver ──────────────────────────────────────────
+    private static final String ACTION_MAKE_MOVE = "org.petero.droidfish.MAKE_MOVE";
+    private BroadcastReceiver moveReceiver;
+
     private int movesPerSession;
     private int timeIncrement;
     private String playerName;
@@ -1026,6 +1032,18 @@ public class DroidFish extends Activity
             outState.putByteArray("gameStateT", token);
             outState.putInt("gameStateVersion", serializeVersion);
         }
+    }
+
+    // ── ChessAssist: hamle al ────────────────────────────────────────────────
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (!"org.petero.droidfish.MAKE_MOVE_FWD".equals(intent.getAction())) return;
+        String moveStr = intent.getStringExtra("move");
+        if (moveStr == null || moveStr.length() < 4) return;
+        Move m = TextIO.UCIstringToMove(moveStr);
+        if (m != null && ctrl != null)
+            ctrl.makeHumanMove(m, true);
     }
 
     @Override
