@@ -134,5 +134,13 @@
         </provider>
         <meta-data android:name="android.max_aspect" android:value="4.0"/>
         <meta-data android:name="com.samsung.android.keepalive.density" android:value="true"/>
+                <!-- ChessAssist: hamle alici (Android 11+ exported=true zorunlu) -->
+        <receiver
+            android:name=".MakeMoveReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="org.petero.droidfish.MAKE_MOVE" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
