@@ -1034,16 +1034,32 @@ public class DroidFish extends Activity
         }
     }
 
-    // ── ChessAssist: hamle al ────────────────────────────────────────────────
+    // ── ChessAssist intent handler ───────────────────────────────────────────
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        if (!"org.petero.droidfish.MAKE_MOVE_FWD".equals(intent.getAction())) return;
-        String moveStr = intent.getStringExtra("move");
-        if (moveStr == null || moveStr.length() < 4) return;
-        Move m = TextIO.UCIstringToMove(moveStr);
-        if (m != null && ctrl != null)
-            ctrl.makeHumanMove(m, true);
+        if (intent == null || intent.getAction() == null) return;
+
+        switch (intent.getAction()) {
+            // SET_FEN: Pozisyonu set et, motor kendi sırasında düşünür
+            case "org.petero.droidfish.SET_FEN_FWD": {
+                String fen = intent.getStringExtra("fen");
+                if (fen == null || fen.isEmpty()) return;
+                try {
+                    ctrl.setFENOrPGN(fen, false);
+                } catch (Exception ignored) {}
+                break;
+            }
+            // MAKE_MOVE: UCI formatında hamle yap (e2e4)
+            case "org.petero.droidfish.MAKE_MOVE_FWD": {
+                String moveStr = intent.getStringExtra("move");
+                if (moveStr == null || moveStr.length() < 4) return;
+                Move m = TextIO.UCIstringToMove(moveStr);
+                if (m != null && ctrl != null)
+                    ctrl.makeHumanMove(m, true);
+                break;
+            }
+        }
     }
 
     @Override
@@ -3718,6 +3734,17 @@ public class DroidFish extends Activity
             Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
             v.vibrate(500);
         }
+
+        // ── ChessAssist: oynanan hamleyi bildir ──────────────────────────────
+        try {
+            String moveStr = TextIO.moveToUCIString(move);
+            String fen     = ctrl.getFEN();
+            Intent i = new Intent("org.petero.droidfish.MOVE_PLAYED");
+            i.putExtra("move",         moveStr);
+            i.putExtra("fen",          fen);
+            i.putExtra("computerMove", computerMove);
+            sendBroadcast(i);
+        } catch (Exception ignored) {}
     }
 
     @Override
