@@ -44,6 +44,13 @@
             android:entries="@array/engine_hash_texts"
             android:defaultValue="@string/engine_hash_default">
         </ListPreference>
+        <EditTextPreference
+            android:key="maxMoveTimeMs"
+            android:title="Max Hamle Süresi (ms)"
+            android:summary="Hamle başına max düşünme süresi. 0 = sınırsız. Örn: 1000 = 1 saniye"
+            android:defaultValue="0"
+            android:inputType="number">
+        </EditTextPreference>
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/prefs_hints">
