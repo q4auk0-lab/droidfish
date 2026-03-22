@@ -87,7 +87,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
@@ -95,7 +94,6 @@ import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
@@ -168,10 +166,6 @@ public class DroidFish extends Activity
     GameMode gameMode;
     private boolean mPonderMode;
     private int timeControl;
-    // ── ChessAssist intent receiver ──────────────────────────────────────────
-    private static final String ACTION_MAKE_MOVE = "org.petero.droidfish.MAKE_MOVE";
-    private BroadcastReceiver moveReceiver;
-
     private int movesPerSession;
     private int timeIncrement;
     private String playerName;
@@ -1034,29 +1028,22 @@ public class DroidFish extends Activity
         }
     }
 
-    // ── ChessAssist intent handler ───────────────────────────────────────────
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         if (intent == null || intent.getAction() == null) return;
-
         switch (intent.getAction()) {
-            // SET_FEN: Pozisyonu set et, motor kendi sırasında düşünür
             case "org.petero.droidfish.SET_FEN_FWD": {
                 String fen = intent.getStringExtra("fen");
                 if (fen == null || fen.isEmpty()) return;
-                try {
-                    ctrl.setFENOrPGN(fen, false);
-                } catch (Exception ignored) {}
+                try { ctrl.setFENOrPGN(fen, false); } catch (Exception ignored) {}
                 break;
             }
-            // MAKE_MOVE: UCI formatında hamle yap (e2e4)
             case "org.petero.droidfish.MAKE_MOVE_FWD": {
                 String moveStr = intent.getStringExtra("move");
                 if (moveStr == null || moveStr.length() < 4) return;
-                Move m = TextIO.UCIstringToMove(moveStr);
-                if (m != null && ctrl != null)
-                    ctrl.makeHumanMove(m, true);
+                org.petero.droidfish.gamelogic.Move m = TextIO.UCIstringToMove(moveStr);
+                if (m != null && ctrl != null) ctrl.makeHumanMove(m, true);
                 break;
             }
         }
@@ -1194,6 +1181,7 @@ public class DroidFish extends Activity
         File extDir = Environment.getExternalStorageDirectory();
         String sep = File.separator;
         engineOptions.hashMB = getIntSetting("hashMB", 16);
+        engineOptions.maxMoveTimeMs = getIntSetting("maxMoveTimeMs", 0);
         engineOptions.unSafeHash = new File(extDir + sep + engineDir + sep + ".unsafehash").exists();
         engineOptions.hints = settings.getBoolean("tbHints", false);
         engineOptions.hintsEdit = settings.getBoolean("tbHintsEdit", false);
@@ -3735,13 +3723,13 @@ public class DroidFish extends Activity
             v.vibrate(500);
         }
 
-        // ── ChessAssist: oynanan hamleyi bildir ──────────────────────────────
+        // Chesso entegrasyonu
         try {
             String moveStr = TextIO.moveToUCIString(move);
-            String fen     = ctrl.getFEN();
+            String fen = ctrl.getFEN();
             Intent i = new Intent("org.petero.droidfish.MOVE_PLAYED");
-            i.putExtra("move",         moveStr);
-            i.putExtra("fen",          fen);
+            i.putExtra("move", moveStr);
+            i.putExtra("fen", fen);
             i.putExtra("computerMove", computerMove);
             sendBroadcast(i);
         } catch (Exception ignored) {}
