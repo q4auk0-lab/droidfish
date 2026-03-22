@@ -16,7 +16,6 @@
                  android:allowBackup="true"
                  android:resizeableActivity="true">
         <activity android:name=".DroidFish"
-            android:launchMode="singleTop"
                   android:label="@string/app_name"
                   android:theme="@style/MainActivityTheme"
                   android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize">
@@ -135,13 +134,14 @@
         </provider>
         <meta-data android:name="android.max_aspect" android:value="4.0"/>
         <meta-data android:name="com.samsung.android.keepalive.density" android:value="true"/>
-                <!-- ChessAssist: hamle alici (Android 11+ exported=true zorunlu) -->
         <receiver
             android:name=".MakeMoveReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="org.petero.droidfish.MAKE_MOVE" />
+                <action android:name="org.petero.droidfish.SET_FEN" />
             </intent-filter>
         </receiver>
+
     </application>
 </manifest>
