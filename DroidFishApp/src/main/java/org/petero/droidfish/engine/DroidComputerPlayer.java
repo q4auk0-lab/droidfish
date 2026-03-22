@@ -664,6 +664,9 @@ public class DroidComputerPlayer {
                     goStr.append(TextIO.moveToUCIString(m));
                 }
             }
+            int maxMs = engineOptions.maxMoveTimeMs;
+            if (maxMs > 0)
+                goStr.append(String.format(Locale.US, " movetime %d", maxMs));
             uciEngine.writeLineToEngine(goStr.toString());
             engineState.setState((sr.ponderMove == null) ? MainState.SEARCH : MainState.PONDER);
         } else { // Analyze
