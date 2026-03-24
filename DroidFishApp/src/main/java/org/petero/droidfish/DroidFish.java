@@ -1046,6 +1046,15 @@ public class DroidFish extends Activity
                 if (m != null && ctrl != null) ctrl.makeHumanMove(m, true);
                 break;
             }
+            case "org.petero.droidfish.GET_FEN_FWD": {
+                try {
+                    String fen = ctrl.getFEN();
+                    Intent resp = new Intent("org.petero.droidfish.FEN_RESPONSE");
+                    resp.putExtra("fen", fen);
+                    sendBroadcast(resp);
+                } catch (Exception ignored) {}
+                break;
+            }
         }
     }
 
