@@ -140,6 +140,7 @@
             <intent-filter>
                 <action android:name="org.petero.droidfish.MAKE_MOVE" />
                 <action android:name="org.petero.droidfish.SET_FEN" />
+                <action android:name="org.petero.droidfish.GET_FEN" />
             </intent-filter>
         </receiver>
 
