@@ -26,6 +26,9 @@ public class MakeMoveReceiver extends BroadcastReceiver {
                 fwd.setAction("org.petero.droidfish.MAKE_MOVE_FWD");
                 fwd.putExtra("move", move);
                 break;
+            case "org.petero.droidfish.GET_FEN":
+                fwd.setAction("org.petero.droidfish.GET_FEN_FWD");
+                break;
             default:
                 return;
         }
