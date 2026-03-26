@@ -2064,6 +2064,10 @@ public class DroidFish extends Activity
     static private final int NEW_NETWORK_ENGINE_DIALOG = 23;
     static private final int NETWORK_ENGINE_CONFIG_DIALOG = 24;
     static private final int DELETE_NETWORK_ENGINE_DIALOG = 25;
+    static private final int API_ENGINE_DIALOG = 26;
+    static private final int NEW_API_ENGINE_DIALOG = 27;
+    static private final int API_ENGINE_CONFIG_DIALOG = 28;
+    static private final int DELETE_API_ENGINE_DIALOG = 29;
     static private final int CLIPBOARD_DIALOG = 26;
     static private final int SELECT_FEN_FILE_DIALOG = 27;
     static private final int SET_STRENGTH_DIALOG = 28;
@@ -2103,6 +2107,10 @@ public class DroidFish extends Activity
         case NEW_NETWORK_ENGINE_DIALOG:      return newNetworkEngineDialog();
         case NETWORK_ENGINE_CONFIG_DIALOG:   return networkEngineConfigDialog();
         case DELETE_NETWORK_ENGINE_DIALOG:   return deleteNetworkEngineDialog();
+        case API_ENGINE_DIALOG:              return apiEngineDialog();
+        case NEW_API_ENGINE_DIALOG:          return newApiEngineDialog();
+        case API_ENGINE_CONFIG_DIALOG:       return apiEngineConfigDialog();
+        case DELETE_API_ENGINE_DIALOG:       return deleteApiEngineDialog();
         case CLIPBOARD_DIALOG:               return clipBoardDialog();
         case SELECT_FEN_FILE_DIALOG:         return selectFenFileDialog();
         }
@@ -3271,6 +3279,7 @@ public class DroidFish extends Activity
         final int SELECT_ENGINE = 0;
         final int SET_ENGINE_OPTIONS = 1;
         final int CONFIG_NET_ENGINE = 2;
+        final int CONFIG_API_ENGINE = 3;
         List<String> lst = new ArrayList<>();
         final List<Integer> actions = new ArrayList<>();
         lst.add(getString(R.string.select_engine)); actions.add(SELECT_ENGINE);
@@ -3279,6 +3288,7 @@ public class DroidFish extends Activity
             actions.add(SET_ENGINE_OPTIONS);
         }
         lst.add(getString(R.string.configure_network_engine)); actions.add(CONFIG_NET_ENGINE);
+        lst.add("API Motoru Yapılandır"); actions.add(CONFIG_API_ENGINE);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.option_manage_engines);
         builder.setItems(lst.toArray(new String[0]), (dialog, item) -> {
@@ -3291,6 +3301,9 @@ public class DroidFish extends Activity
                 break;
             case CONFIG_NET_ENGINE:
                 reShowDialog(NETWORK_ENGINE_DIALOG);
+                break;
+            case CONFIG_API_ENGINE:
+                reShowDialog(API_ENGINE_DIALOG);
                 break;
             }
         });
@@ -3497,6 +3510,147 @@ public class DroidFish extends Activity
             reShowDialog(NETWORK_ENGINE_DIALOG);
         });
         builder.setOnCancelListener(dialog -> reShowDialog(NETWORK_ENGINE_DIALOG));
+        return builder.create();
+    }
+
+    // -----------------------------------------------------------------------
+    // API Engine dialogs
+    // -----------------------------------------------------------------------
+
+    private String apiEngineToConfig = "";
+
+    private Dialog apiEngineDialog() {
+        String[] fileNames = FileUtil.findFilesInDirectory(engineDir, filename -> {
+            if (reservedEngineName(filename)) return false;
+            String sep = File.separator;
+            String base = Environment.getExternalStorageDirectory() + sep + engineDir + sep;
+            return EngineUtil.isApiEngine(base + filename);
+        });
+        final int numItems = fileNames.length + 1;
+        final String[] items = new String[numItems];
+        final String[] ids   = new String[numItems];
+        int idx = 0;
+        String sep  = File.separator;
+        String base = Environment.getExternalStorageDirectory() + sep + engineDir + sep;
+        for (String f : fileNames) { ids[idx] = base + f; items[idx] = f; idx++; }
+        ids[idx] = ""; items[idx] = getString(R.string.new_engine);
+        String currEngine = ctrl.getEngine();
+        int defaultItem = 0;
+        for (int i = 0; i < numItems; i++)
+            if (ids[i].equals(currEngine)) { defaultItem = i; break; }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("API Motoru Seç");
+        builder.setSingleChoiceItems(items, defaultItem, (dialog, item) -> {
+            if (item < 0 || item >= numItems) return;
+            dialog.dismiss();
+            if (item == numItems - 1) {
+                showDialog(NEW_API_ENGINE_DIALOG);
+            } else {
+                apiEngineToConfig = ids[item];
+                reShowDialog(API_ENGINE_CONFIG_DIALOG);
+            }
+        });
+        builder.setOnCancelListener(dialog -> reShowDialog(MANAGE_ENGINES_DIALOG));
+        return builder.create();
+    }
+
+    private Dialog newApiEngineDialog() {
+        View content = View.inflate(this, R.layout.create_network_engine, null);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(content);
+        builder.setTitle("Yeni API Motoru");
+        final EditText nameView = content.findViewById(R.id.create_network_engine);
+        nameView.setText("");
+        nameView.setHint("Motor adı (örn. chessapi)");
+        final Runnable create = () -> {
+            String name = nameView.getText().toString().trim();
+            String sep  = File.separator;
+            String path = Environment.getExternalStorageDirectory() + sep + engineDir + sep + name;
+            if (name.contains("/") || name.isEmpty()) {
+                DroidFishApp.toast(R.string.slash_not_allowed, Toast.LENGTH_LONG);
+                reShowDialog(API_ENGINE_DIALOG); return;
+            }
+            if (reservedEngineName(name) || new File(path).exists()) {
+                DroidFishApp.toast(R.string.engine_name_in_use, Toast.LENGTH_LONG);
+                reShowDialog(API_ENGINE_DIALOG); return;
+            }
+            apiEngineToConfig = path;
+            reShowDialog(API_ENGINE_CONFIG_DIALOG);
+        };
+        builder.setPositiveButton(android.R.string.ok, (d, w) -> create.run());
+        builder.setNegativeButton(R.string.cancel, (d, w) -> reShowDialog(API_ENGINE_DIALOG));
+        builder.setOnCancelListener(d -> reShowDialog(API_ENGINE_DIALOG));
+        final Dialog dialog = builder.create();
+        nameView.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
+                create.run(); dialog.cancel(); return true;
+            }
+            return false;
+        });
+        return dialog;
+    }
+
+    private Dialog apiEngineConfigDialog() {
+        View content = View.inflate(this, R.layout.api_engine_config, null);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(content);
+        builder.setTitle("API Motor Kodu");
+        final EditText jsView = content.findViewById(R.id.api_engine_js);
+        // Load existing JS code from file (skip first "APIE" line)
+        String existingJs = "";
+        try {
+            if (EngineUtil.isApiEngine(apiEngineToConfig)) {
+                String[] lines = FileUtil.readFile(apiEngineToConfig);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 1; i < lines.length; i++) {
+                    if (sb.length() > 0) sb.append("\n");
+                    sb.append(lines[i]);
+                }
+                existingJs = sb.toString();
+            }
+        } catch (Exception ignore) {}
+        jsView.setText(existingJs);
+        final Runnable save = () -> {
+            String js = jsView.getText().toString();
+            try (java.io.FileWriter fw = new java.io.FileWriter(new File(apiEngineToConfig), false)) {
+                fw.write("APIE\n");
+                fw.write(js);
+                setEngineOptions(true);
+            } catch (java.io.IOException e) {
+                DroidFishApp.toast(e.getMessage(), Toast.LENGTH_LONG);
+            }
+        };
+        builder.setPositiveButton(android.R.string.ok, (d, w) -> {
+            save.run();
+            reShowDialog(API_ENGINE_DIALOG);
+        });
+        builder.setNegativeButton(R.string.cancel, (d, w) -> reShowDialog(API_ENGINE_DIALOG));
+        builder.setNeutralButton(R.string.delete, (d, w) -> reShowDialog(DELETE_API_ENGINE_DIALOG));
+        builder.setOnCancelListener(d -> reShowDialog(API_ENGINE_DIALOG));
+        return builder.create();
+    }
+
+    private Dialog deleteApiEngineDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("API Motoru Sil");
+        String msg = apiEngineToConfig;
+        if (msg.lastIndexOf('/') >= 0) msg = msg.substring(msg.lastIndexOf('/') + 1);
+        builder.setMessage("API Motoru: " + msg);
+        builder.setPositiveButton(R.string.yes, (dialog, id) -> {
+            new File(apiEngineToConfig).delete();
+            String engine = settings.getString("engine", "stockfish");
+            if (engine.equals(apiEngineToConfig)) {
+                Editor editor = settings.edit();
+                editor.putString("engine", "stockfish");
+                editor.apply();
+                setEngineOptions(false);
+                setEngine("stockfish");
+            }
+            dialog.cancel();
+            reShowDialog(API_ENGINE_DIALOG);
+        });
+        builder.setNegativeButton(R.string.no, (d, i) -> { d.cancel(); reShowDialog(API_ENGINE_DIALOG); });
+        builder.setOnCancelListener(d -> reShowDialog(API_ENGINE_DIALOG));
         return builder.create();
     }
 
