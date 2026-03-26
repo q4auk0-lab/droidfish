@@ -2064,10 +2064,10 @@ public class DroidFish extends Activity
     static private final int NEW_NETWORK_ENGINE_DIALOG = 23;
     static private final int NETWORK_ENGINE_CONFIG_DIALOG = 24;
     static private final int DELETE_NETWORK_ENGINE_DIALOG = 25;
-    static private final int API_ENGINE_DIALOG = 26;
-    static private final int NEW_API_ENGINE_DIALOG = 27;
-    static private final int API_ENGINE_CONFIG_DIALOG = 28;
-    static private final int DELETE_API_ENGINE_DIALOG = 29;
+    static private final int API_ENGINE_DIALOG = 100;
+    static private final int NEW_API_ENGINE_DIALOG = 101;
+    static private final int API_ENGINE_CONFIG_DIALOG = 102;
+    static private final int DELETE_API_ENGINE_DIALOG = 103;
     static private final int CLIPBOARD_DIALOG = 26;
     static private final int SELECT_FEN_FILE_DIALOG = 27;
     static private final int SET_STRENGTH_DIALOG = 28;
