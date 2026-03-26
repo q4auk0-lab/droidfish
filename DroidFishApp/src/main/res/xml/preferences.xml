@@ -51,6 +51,13 @@
             android:defaultValue="0"
             android:inputType="number">
         </EditTextPreference>
+        <EditTextPreference
+            android:key="earlyStopMs"
+            android:title="Erken Dur - Stabilite Süresi (ms)"
+            android:summary="En iyi hamle bu süre boyunca değişmezse aramayı durdur. 0 = devre dışı. Örn: 500 = 0.5 saniye"
+            android:defaultValue="0"
+            android:inputType="number">
+        </EditTextPreference>
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/prefs_hints">
