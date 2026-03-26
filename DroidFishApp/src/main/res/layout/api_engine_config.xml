@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="10dp">
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="6dp"
+        android:text="JavaScript kodu (fen değişkeni hazır gelir, bestMove değişkenine hamle atayın):" />
+
+    <EditText
+        android:id="@+id/api_engine_js"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="top|start"
+        android:inputType="textMultiLine|textNoSuggestions"
+        android:minLines="10"
+        android:scrollbars="vertical"
+        android:typeface="monospace"
+        android:textSize="12sp"
+        android:hint="// Örnek (chess-api.com):&#10;fetch('https://chess-api.com/v1', {&#10;  method: 'POST',&#10;  headers: {'Content-Type': 'application/json'},&#10;  body: JSON.stringify({fen: fen, depth: 12})&#10;}).then(r => r.json()).then(d => { bestMove = d.move; });" />
+
+</LinearLayout>
