@@ -46,6 +46,8 @@ public abstract class UCIEngineBase implements UCIEngine {
             return new InternalStockFish(report, engineOptions.workDir);
         else if (EngineUtil.isOpenExchangeEngine(engine))
             return new OpenExchangeEngine(engine, engineOptions.workDir, report);
+        else if (EngineUtil.isApiEngine(engine))
+            return new WebViewApiEngine(engine, engineOptions);
         else if (EngineUtil.isNetEngine(engine))
             return new NetworkEngine(engine, engineOptions, report);
         else
