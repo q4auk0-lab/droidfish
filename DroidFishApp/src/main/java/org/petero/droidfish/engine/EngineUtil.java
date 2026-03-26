@@ -44,6 +44,18 @@ public class EngineUtil {
         return abi + "/stockfish" + (isSimdSupported() ? "" : "_nosimd");
     }
 
+    /** Return true if file "engine" is an API engine (HTTP POST based). */
+    public static boolean isApiEngine(String engine) {
+        try (InputStream inStream = new FileInputStream(engine);
+             InputStreamReader inFile = new InputStreamReader(inStream)) {
+            char[] buf = new char[4];
+            if ((inFile.read(buf) == 4) && "APIE".equals(new String(buf)))
+                return true;
+        } catch (IOException ignore) {
+        }
+        return false;
+    }
+
     /** Return true if file "engine" is a network engine. */
     public static boolean isNetEngine(String engine) {
         boolean netEngine = false;
