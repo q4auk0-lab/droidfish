@@ -44,6 +44,12 @@ public class DroidComputerPlayer {
     private final SearchListener listener;
     private final DroidBook book;
     private EngineOptions engineOptions = new EngineOptions();
+
+    // Early stop: if best move doesn't change for earlyStopMs, send stop
+    private Thread earlyStopThread = null;
+    private volatile String earlyStopBestMove = null;
+    private volatile long earlyStopLastChangeTime = 0;
+    private volatile boolean earlyStopActive = false;
     /** Pending UCI options to send when engine becomes idle. */
     private Map<String,String> pendingOptions = new TreeMap<>();
 
@@ -527,6 +533,7 @@ public class DroidComputerPlayer {
     /** Tell engine to stop searching. */
     public final synchronized boolean stopSearch() {
         searchRequest = null;
+        stopEarlyStopMonitor();
         switch (engineState.state) {
         case SEARCH:
         case PONDER:
@@ -669,6 +676,7 @@ public class DroidComputerPlayer {
                 goStr.append(String.format(Locale.US, " movetime %d", maxMs));
             uciEngine.writeLineToEngine(goStr.toString());
             engineState.setState((sr.ponderMove == null) ? MainState.SEARCH : MainState.PONDER);
+            startEarlyStopMonitor();
         } else { // Analyze
             StringBuilder posStr = new StringBuilder();
             posStr.append("position fen ");
@@ -694,6 +702,46 @@ public class DroidComputerPlayer {
             }
             uciEngine.writeLineToEngine(goStr.toString());
             engineState.setState(MainState.ANALYZE);
+        }
+    }
+
+    /** Start early-stop monitor thread if earlyStopMs > 0. */
+    private void startEarlyStopMonitor() {
+        stopEarlyStopMonitor();
+        final int delayMs = engineOptions.earlyStopMs;
+        if (delayMs <= 0) return;
+        earlyStopBestMove = null;
+        earlyStopLastChangeTime = System.currentTimeMillis();
+        earlyStopActive = true;
+        earlyStopThread = new Thread(() -> {
+            // Wait until we have a first best move before starting the stability timer
+            while (earlyStopActive && earlyStopBestMove == null) {
+                try { Thread.sleep(20); } catch (InterruptedException e) { return; }
+            }
+            // Reset timer now that we have a first move
+            earlyStopLastChangeTime = System.currentTimeMillis();
+            while (earlyStopActive) {
+                try { Thread.sleep(20); } catch (InterruptedException e) { return; }
+                long stableFor = System.currentTimeMillis() - earlyStopLastChangeTime;
+                if (stableFor >= delayMs) {
+                    synchronized (DroidComputerPlayer.this) {
+                        if (engineState.state == MainState.SEARCH)
+                            uciEngine.writeLineToEngine("stop");
+                    }
+                    break;
+                }
+            }
+        });
+        earlyStopThread.setDaemon(true);
+        earlyStopThread.start();
+    }
+
+    /** Stop and clean up the early-stop monitor thread. */
+    private void stopEarlyStopMonitor() {
+        earlyStopActive = false;
+        if (earlyStopThread != null) {
+            earlyStopThread.interrupt();
+            earlyStopThread = null;
         }
     }
 
@@ -1040,6 +1088,14 @@ public class DroidComputerPlayer {
                     pvModified = true;
                     havePvData = true;
                     statPVDepth = statCurrDepth;
+                    // Early stop: track best move stability
+                    if (!statPV.isEmpty() && pvNum == 0) {
+                        String newBest = statPV.get(0);
+                        if (!newBest.equals(earlyStopBestMove)) {
+                            earlyStopBestMove = newBest;
+                            earlyStopLastChangeTime = System.currentTimeMillis();
+                        }
+                    }
                 } else if (is.equals("score")) {
                     statIsMate = tokens[i++].equals("mate");
                     statScore = Integer.parseInt(tokens[i++]);
