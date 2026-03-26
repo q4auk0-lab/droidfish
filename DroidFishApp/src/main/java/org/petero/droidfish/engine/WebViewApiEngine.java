@@ -119,6 +119,11 @@ public class WebViewApiEngine extends UCIEngineBase {
     }
 
     @Override
+    public boolean optionsOk(EngineOptions engineOptions) {
+        return true; // Always ok; config is stored in the APIE file, not EngineOptions
+    }
+
+    @Override
     public String readLineFromEngine(int timeoutMillis) {
         return engineToGui.readLine(timeoutMillis);
     }
