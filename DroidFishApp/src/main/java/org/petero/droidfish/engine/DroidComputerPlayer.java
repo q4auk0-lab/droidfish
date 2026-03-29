@@ -911,6 +911,16 @@ public class DroidComputerPlayer {
                 canPonder = false;
             }
         }
+
+        // Seek draw by repetition: if seekDraw enabled, find a move that leads to a repeated position
+        if (engineOptions.seekDraw && canPonder) {
+            String repMove = findRepetitionMove(sr.currPos, sr.posHashList, sr.posHashListSize);
+            if (repMove != null) {
+                bestMove = repMove;
+                canPonder = false;
+            }
+        }
+
         // Accept draw offer if engine is losing
         if (sr.drawOffer && !statIsMate && (statScore <= -300)) {
             bestMove = "draw accept";
@@ -949,6 +959,29 @@ public class DroidComputerPlayer {
      * @param move The move that may have to be made before claiming draw.
      * @return The draw string that claims the draw, or empty string if draw claim not valid.
      */
+    /**
+     * Find a move that leads to a position seen before (draw by repetition seeker).
+     * Returns UCI move string or null if none found.
+     */
+    private static String findRepetitionMove(Position pos, long[] posHashList, int posHashListSize) {
+        ArrayList<Move> moves = MoveGen.instance.legalMoves(pos);
+        UndoInfo ui = new UndoInfo();
+        // Expand hash list by 1 for the new position after move
+        long[] newHashList = new long[posHashListSize + 2];
+        System.arraycopy(posHashList, 0, newHashList, 0, posHashListSize);
+        newHashList[posHashListSize] = pos.zobristHash();
+        for (Move m : moves) {
+            pos.makeMove(m, ui);
+            newHashList[posHashListSize + 1] = pos.zobristHash();
+            boolean isRep = canClaimDrawRep(pos, newHashList, posHashListSize + 2, posHashListSize + 2);
+            pos.unMakeMove(m, ui);
+            if (isRep) {
+                return TextIO.moveToUCIString(m);
+            }
+        }
+        return null;
+    }
+
     private static String canClaimDraw(Position pos, long[] posHashList, int posHashListSize, Move move) {
         String drawStr = "";
         if (canClaimDraw50(pos)) {
