@@ -23,6 +23,7 @@ public final class EngineOptions {
     public int hashMB;          // Engine hash table size in MB
     public int maxMoveTimeMs;   // Max think time per move in ms, 0 = unlimited
     public int earlyStopMs;     // Stop if best move unchanged for this many ms, 0 = disabled
+    public boolean seekDraw;    // Actively seek draw by repetition
     public boolean unSafeHash;  // True if allocating very large hash is allowed
     public boolean hints;       // Hints when playing/analyzing
     public boolean hintsEdit;   // Hints in "edit board" mode
@@ -39,6 +40,7 @@ public final class EngineOptions {
         hashMB = 16;
         maxMoveTimeMs = 0;
         earlyStopMs = 0;
+        seekDraw = false;
         unSafeHash = false;
         hints = false;
         hintsEdit = false;
@@ -56,6 +58,7 @@ public final class EngineOptions {
         hashMB = other.hashMB;
         maxMoveTimeMs = other.maxMoveTimeMs;
         earlyStopMs = other.earlyStopMs;
+        seekDraw = other.seekDraw;
         unSafeHash = other.unSafeHash;
         hints = other.hints;
         hintsEdit = other.hintsEdit;
