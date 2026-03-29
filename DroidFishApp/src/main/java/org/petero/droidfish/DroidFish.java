@@ -1192,6 +1192,7 @@ public class DroidFish extends Activity
         engineOptions.hashMB = getIntSetting("hashMB", 16);
         engineOptions.maxMoveTimeMs = getIntSetting("maxMoveTimeMs", 0);
         engineOptions.earlyStopMs = getIntSetting("earlyStopMs", 0);
+        engineOptions.seekDraw = settings.getBoolean("seekDraw", false);
         engineOptions.unSafeHash = new File(extDir + sep + engineDir + sep + ".unsafehash").exists();
         engineOptions.hints = settings.getBoolean("tbHints", false);
         engineOptions.hintsEdit = settings.getBoolean("tbHintsEdit", false);
