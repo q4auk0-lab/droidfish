@@ -58,6 +58,12 @@
             android:defaultValue="0"
             android:inputType="number">
         </EditTextPreference>
+        <CheckBoxPreference
+            android:key="seekDraw"
+            android:title="Berabere Ara"
+            android:summary="Tekrar pozisyonuna götüren hamleleri tercih et (berabere zorla)"
+            android:defaultValue="false">
+        </CheckBoxPreference>
     </PreferenceCategory>
     <PreferenceCategory
         android:title="@string/prefs_hints">
