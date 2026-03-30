@@ -1039,6 +1039,11 @@ public class DroidFish extends Activity
                 try { ctrl.setFENOrPGN(fen, false); } catch (Exception ignored) {}
                 break;
             }
+            case "org.petero.droidfish.NEW_GAME_FWD": {
+                int type = intent.getIntExtra("type", 2); // 0=beyaz, 1=siyah, 2=aynı mod
+                startNewGame(type);
+                break;
+            }
             case "org.petero.droidfish.MAKE_MOVE_FWD": {
                 String moveStr = intent.getStringExtra("move");
                 if (moveStr == null || moveStr.length() < 4) return;
