@@ -29,6 +29,7 @@ import org.petero.droidfish.EngineOptions;
 import org.petero.droidfish.book.BookOptions;
 import org.petero.droidfish.book.DroidBook;
 import org.petero.droidfish.book.IOpeningBook.BookPosInput;
+import org.petero.droidfish.engine.UCIEngine;
 import org.petero.droidfish.gamelogic.Move;
 import org.petero.droidfish.gamelogic.MoveGen;
 import org.petero.droidfish.gamelogic.Position;
